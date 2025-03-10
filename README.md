@@ -9,7 +9,7 @@ It's a design pattern in React that separates concerns by dividing components in
 
 ---
 
-### Classic Approach - Before Hooks
+Classic Approach - Before Hooks
 
 ```jsx
 // Presentational Component (Button.jsx)
@@ -49,7 +49,7 @@ export default ButtonContainer;
 
 ---
 
-### Modern Approach - With Hooks (But Less Necessary*)
+Modern Approach - With Hooks (But Less Necessary*)
 
 ```jsx
 // Presentational Component (Button.jsx)
@@ -89,13 +89,13 @@ export default ButtonContainer;
 
 ---
 
-## 2.1.1 - Why Hooks Reduce the Need for the Pattern:
+### 2.1.1 - Why Hooks Reduce the Need for the Pattern:
 - **State & Effects in Functional Components** – `Hooks like useState and useEffect allow handling logic inside the same component without class-based lifecycles.`
 - **Encapsulation with Custom Hooks** – Instead of separate container components, logic can be extracted into custom hooks, making components reusable and cleaner.
 
 ---
 
-## 2.1.2 - Alternative with Hooks (No Need for Container Component)
+### 2.1.2 - Alternative with Hooks (No Need for Container Component)
 
 Instead of separating components into container/presentational, we can use Hooks directly inside a functional component:
 
@@ -120,7 +120,7 @@ export default ClickCounter;
 
 ---
 
-## 2.1.3 - Using a Custom Hook Instead of a Container Component
+### 2.1.3 - Using a Custom Hook Instead of a Container Component
 
 If we need to **reuse logic** across multiple components, a **custom hook** is a better alternative than a separate container component.
 
@@ -161,10 +161,45 @@ export default ButtonCounter;
 
 ---
 
-## 2.1.4 - When Should We Still Use Container/Presentational?
+### 2.1.4 - When Should We Still Use Container/Presentational?
 
 Even though Hooks reduce the need for this pattern, there are cases where it's still useful:
 
 - If the `UI component (Button) is used in multiple places with different logic`.
 - If we want a `clear separation between UI and logic` (for better reusability in large apps).
 - If the `logic is complex` (e.g., data fetching, context management).
+
+## 2.2 - High-Order Components
+
+A Higher-Order Component (HOC) is a `function that takes a component and enhances it by returning a new component with additional features`.  
+
+Example: You want to `add a style to multiple components without repeating the same CSS`.  
+
+```tsx
+import React from "react";
+
+// Higher-Order Component
+const withBorder = (WrappedComponent: React.ComponentType) => {
+  return (props: any) => (
+    <div style={{ border: "2px solid red", padding: "10px" }}>
+      <WrappedComponent {...props} />
+    </div>
+  );
+};
+
+// Base Component
+const Message = ({ text }: { text: string }) => <p>{text}</p>;
+
+// Enhanced Component
+const MessageWithBorder = withBorder(Message);
+
+export default function App() {
+  return <MessageWithBorder text="Hello, world!" />;
+}
+
+// Message is a simple component that displays text.
+// withBorder(Message) wraps it inside a div with a red border.
+// Now, any component can be wrapped with withBorder to add the same effect.
+```
+
+> When to avoid HOCs ? If the enhancement involves state or effects, Hooks (useState, useEffect) are often a better choice.
