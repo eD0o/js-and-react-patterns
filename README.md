@@ -49,7 +49,7 @@ export default ButtonContainer;
 
 ---
 
-Modern Approach - With Hooks (But Less Necessary*)
+Modern Approach - With Hooks (But Less Necessary\*)
 
 ```jsx
 // Presentational Component (Button.jsx)
@@ -85,11 +85,12 @@ const ButtonContainer = () => {
 export default ButtonContainer;
 ```
 
-> * With React Hooks, the need for the Container/Presentational pattern has significantly decreased. The pattern was more common before Hooks, when class components required explicit separation of logic (state, lifecycle methods) from UI.
+> - With React Hooks, the need for the Container/Presentational pattern has significantly decreased. The pattern was more common before Hooks, when class components required explicit separation of logic (state, lifecycle methods) from UI.
 
 ---
 
 ### 2.1.1 - Why Hooks Reduce the Need for the Pattern:
+
 - **State & Effects in Functional Components** – `Hooks like useState and useEffect allow handling logic inside the same component without class-based lifecycles.`
 - **Encapsulation with Custom Hooks** – Instead of separate container components, logic can be extracted into custom hooks, making components reusable and cleaner.
 
@@ -171,9 +172,9 @@ Even though Hooks reduce the need for this pattern, there are cases where it's s
 
 ## 2.2 - High-Order Components
 
-A Higher-Order Component (HOC) is a `function that takes a component and enhances it by returning a new component with additional features`.  
+A Higher-Order Component (HOC) is a `function that takes a component and enhances it by returning a new component with additional features`.
 
-Example: You want to `add a style to multiple components without repeating the same CSS`.  
+Example: You want to `add a style to multiple components without repeating the same CSS`.
 
 ```tsx
 import React from "react";
@@ -203,3 +204,93 @@ export default function App() {
 ```
 
 > When to avoid HOCs ? If the enhancement involves state or effects, Hooks (useState, useEffect) are often a better choice.
+
+# 2.3 Render Props Pattern in React
+
+Allows components to `share logic by passing a function (render prop) as a prop`, which controls what to render.
+
+Example: Mouse Position Tracker  
+
+```tsx
+import React, { useState } from "react";
+
+// Component using Render Props
+const MouseTracker = ({
+  render,
+}: {
+  render: (position: { x: number; y: number }) => JSX.Element;
+}) => {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (event: React.MouseEvent) => {
+    setPosition({ x: event.clientX, y: event.clientY });
+  };
+
+  return (
+    <div style={{ height: "200px" }} onMouseMove={handleMouseMove}>
+      {render(position)}
+    </div>
+  );
+};
+
+// Component using MouseTracker
+export default function App() {
+  return (
+    <MouseTracker
+      render={({ x, y }) => (
+        <p>
+          Mouse position: ({x}, {y})
+        </p>
+      )}
+    />
+  );
+}
+```
+
+> The Render Props pattern `does not require the prop to be named render—it can be anything, as long as it follows the same concept of passing a function as a prop` to control rendering.
+
+Example 2: Temperature Conversion
+
+```tsx
+import React, { useState } from "react";
+
+// Component using Render Props
+function Input({
+  renderKelvin,
+  renderFahrenheit,
+}: {
+  renderKelvin: (data: { value: number }) => JSX.Element;
+  renderFahrenheit: (data: { value: number }) => JSX.Element;
+}) {
+  const [value, setValue] = useState(0);
+
+  return (
+    <>
+      <input
+        type="number"
+        value={value}
+        onChange={(e) => setValue(Number(e.target.value))}
+      />
+      {renderKelvin({ value: value + 273.15 })}
+      {renderFahrenheit({ value: (value * 9) / 5 + 32 })}
+    </>
+  );
+}
+
+// Component using Input
+export default function App() {
+  return (
+    <Input
+      renderKelvin={({ value }) => <div className="temp">{value}K</div>}
+      renderFahrenheit={({ value }) => <div className="temp">{value}°F</div>}
+    />
+  );
+}
+```
+
+Key Takeaways
+  - ✅ The Render Props pattern allows components to `share logic without inheritance or HOCs`.
+  - ✅ The function `prop can have any name, not just render`.
+  - ✅ Use cases: reusable logic like mouse tracking, form validation, data fetching, etc.
+  - ✅ Alternatives: `React Hooks (useState, useEffect) are often preferred` for newer projects.
+
