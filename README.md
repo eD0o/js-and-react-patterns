@@ -294,3 +294,70 @@ Key Takeaways
   - ✅ Use cases: reusable logic like mouse tracking, form validation, data fetching, etc.
   - ✅ Alternatives: `React Hooks (useState, useEffect) are often preferred` for newer projects.
 
+# 2.4 - Hooks Pattern
+
+React Hooks are special functions that allow you to:
+
+- `Add state` to functional components.
+- `Reuse stateful logic` across multiple components.
+- `Manage the lifecycle` a component without using class components.
+
+Hooks unify previously introduced patterns (Container-Presentation, HOC, and Render Props) into a more streamlined approach.
+
+Besides built-in hooks, such as useState, useEffect, and useReducer, we `can create custom hooks to easiliy share stateful logic across multiple components`.
+
+> To create a custom hook, its name `must start with "use" so that React recognizes` it as a hook.
+
+With Hooks, we `no longer have to wrap Presentational components in Container components to pass data. Instead, we can use hooks directly inside presentational components`.
+
+Example: Custom Hook (useHover)
+
+```jsx
+export function useHover() {
+  const [isHovering, setIsHovering] = React.useState(false);
+  const ref = React.useRef(null);
+
+  const handleMouseOver = () => setIsHovering(true);
+  const handleMouseOut = () => setIsHovering(false);
+
+  React.useEffect(() => {
+    const node = ref.current;
+    if (node) {
+      node.addEventListener("mouseover", handleMouseOver);
+      node.addEventListener("mouseout", handleMouseOut);
+      return () => {
+        node.removeEventListener("mouseover", handleMouseOver);
+        node.removeEventListener("mouseout", handleMouseOut);
+      };
+    }
+  }, [ref.current]);
+
+  return [ref, isHovering];
+}
+```
+
+```jsx
+// Using useHover in a Component
+import { useHover } from "../hooks/useHover";
+
+export function Listing() {
+  const [ref, isHovering] = useHover();
+
+  React.useEffect(() => {
+    if (isHovering) {
+      // Add logic here
+    }
+  }, [isHovering]);
+
+  return (
+    <div ref={ref}>
+      <ListingCard />
+    </div>
+  );
+}
+```
+
+Con: Hooks require certain rules to be followed. `Without a linter plugin (eslint-plugin-react-hooks), it can be difficult to detect rule violations`, and it's easy to misuse hooks, such as calling them conditionally or inside loops.
+
+Some other example hooks: https://usehooks.com/
+
