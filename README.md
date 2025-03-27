@@ -209,7 +209,7 @@ export default function App() {
 
 Allows components to `share logic by passing a function (render prop) as a prop`, which controls what to render.
 
-Example: Mouse Position Tracker  
+Example: Mouse Position Tracker
 
 ```tsx
 import React, { useState } from "react";
@@ -289,10 +289,11 @@ export default function App() {
 ```
 
 Key Takeaways
-  - ✅ The Render Props pattern allows components to `share logic without inheritance or HOCs`.
-  - ✅ The function `prop can have any name, not just render`.
-  - ✅ Use cases: reusable logic like mouse tracking, form validation, data fetching, etc.
-  - ✅ Alternatives: `React Hooks (useState, useEffect) are often preferred` for newer projects.
+
+- ✅ The Render Props pattern allows components to `share logic without inheritance or HOCs`.
+- ✅ The function `prop can have any name, not just render`.
+- ✅ Use cases: reusable logic like mouse tracking, form validation, data fetching, etc.
+- ✅ Alternatives: `React Hooks (useState, useEffect) are often preferred` for newer projects.
 
 # 2.4 - Hooks Pattern
 
@@ -361,3 +362,172 @@ Con: Hooks require certain rules to be followed. `Without a linter plugin (eslin
 
 Some other example hooks: https://usehooks.com/
 
+# 2.5 - Provider Pattern
+
+It `utilizes React's Context API`, which allows for easy data sharing between components.
+
+A Provider `is a higher-order component provided by the Context object. We can create a Context object using the createContext` method that React provides.
+
+```tsx
+import React, { createContext, useState } from "react";
+
+export const ThemeContext = createContext(null);
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState("light");
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+```
+
+```tsx
+import { ThemeProvider, ThemeContext } from "../context";
+
+const LandingPage = () => {
+  return (
+    <ThemeProvider>
+      <TopNav />
+      <Main />
+    </ThemeProvider>
+  );
+};
+
+const TopNav = () => {
+  return (
+    <ThemeContext.Consumer>
+      {({ theme }) => (
+        <div style={{ backgroundColor: theme === "light" ? "#fff" : "#000" }}>
+          ...
+        </div>
+      )}
+    </ThemeContext.Consumer>
+  );
+};
+
+const Toggle = () => {
+  return (
+    <ThemeContext.Consumer>
+      {({ theme, setTheme }) => (
+        <button
+          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          style={{
+            backgroundColor: theme === "light" ? "#fff" : "#000",
+            color: theme === "light" ? "#000" : "#fff",
+          }}
+        >
+          Use {theme === "light" ? "Dark" : "Light"} Theme
+        </button>
+      )}
+    </ThemeContext.Consumer>
+  );
+};
+```
+
+## 2.5.1 - Multiple Providers in an App
+
+A Provider `does not have to be used only in App.tsx`. `Any component can define its own Provider`, allowing for scoped contexts.
+
+```tsx
+const Layout = () => {
+  return (
+    <ThemeProvider>
+      <UserProvider>
+        <Navbar />
+        <MainContent />
+      </UserProvider>
+    </ThemeProvider>
+  );
+};
+
+// Here, ThemeProvider manages the theme state, while UserProvider manages authentication.
+```
+
+Component-Specific Providers: A component `can wrap a specific section with its own Provider, overriding the global context`.
+
+```tsx
+const Section = () => {
+  return (
+    <ThemeProvider>
+      <SubSection />
+    </ThemeProvider>
+  );
+};
+```
+
+In this case, SubSection and its children will use the new ThemeProvider instead of inheriting from a global provider.
+
+Nested Providers for User and Theme: We `can nest multiple providers to manage separate state logic` while keeping components independent.
+
+```tsx
+import React, { createContext, useState, useContext } from "react";
+
+// Theme Context
+const ThemeContext = createContext(null);
+
+const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState("light");
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+// User Context
+const UserContext = createContext(null);
+
+const UserProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  return (
+    <UserContext.Provider value={{ user, setUser }}>
+      {children}
+    </UserContext.Provider>
+  );
+};
+
+// Component consuming both contexts
+const Dashboard = () => {
+  const { theme, setTheme } = useContext(ThemeContext);
+  const { user, setUser } = useContext(UserContext);
+
+  return (
+    <div
+      style={{
+        background: theme === "light" ? "#fff" : "#000",
+        color: theme === "light" ? "#000" : "#fff",
+      }}
+    >
+      <h1>Welcome, {user ? user.name : "Guest"}!</h1>
+      <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+        Toggle Theme
+      </button>
+      <button onClick={() => setUser(user ? null : { name: "John" })}>
+        {user ? "Logout" : "Login"}
+      </button>
+    </div>
+  );
+};
+
+// App Component with Nested Providers
+const App = () => {
+  return (
+    <ThemeProvider>
+      <UserProvider>
+        <Dashboard />
+      </UserProvider>
+    </ThemeProvider>
+  );
+};
+```
+
+This example demonstrates:
+
+- Independent providers for theme and user state.
+
+- Consuming multiple contexts inside the Dashboard component.
+
+- Scoped providers so different parts of the app can manage their own context values.
