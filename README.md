@@ -531,3 +531,139 @@ This example demonstrates:
 - Consuming multiple contexts inside the Dashboard component.
 
 - Scoped providers so different parts of the app can manage their own context values.
+
+# 2.6 - Compound Component Pattern
+
+The Compound Component Pattern allows components to work together as a cohesive unit by exposing multiple subcomponents inside a single parent component. Instead of passing multiple props, this pattern enables implicit communication between components using React Context.
+
+Difference Between Provider Pattern and Compound Pattern
+
+| Feature        | Provider Pattern                                                 | Compound Component Pattern                                                |
+| -------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Purpose        | Shares data across components globally or in a section           | Groups related components together into a `single reusable unit`          |
+| Implementation | Uses createContext and provides a Provider for state management  | Uses `createContext inside a parent component to manage state` internally |
+| Usage          | Any component within the provider’s tree can consume the context | Subcomponents are `explicitly structured` within the main component       |
+| Best for       | Theming, Authentication, Global State                            | Toggles, Tabs, Accordions, Menus                                          |
+
+---
+
+Example: Toggle Component with Compound Pattern
+
+`Instead of passing multiple props to a single component, we define subcomponents inside a parent` Toggle component.
+
+```tsx
+import React, { createContext, useState, useContext } from "react";
+
+const ToggleContext = createContext(null);
+
+const Toggle = ({ children }) => {
+  const [on, setOn] = useState(false);
+  return (
+    <ToggleContext.Provider value={{ on, setOn }}>
+      {children}
+    </ToggleContext.Provider>
+  );
+};
+
+const ToggleButton = () => {
+  const { on, setOn } = useContext(ToggleContext);
+  return (
+    <button onClick={() => setOn(!on)}>{on ? "Turn Off" : "Turn On"}</button>
+  );
+};
+
+const ToggleStatus = () => {
+  const { on } = useContext(ToggleContext);
+  return <p>Status: {on ? "ON" : "OFF"}</p>;
+};
+
+// Usage of Toggle with subcomponents
+const App = () => {
+  return (
+    <Toggle>
+      <ToggleButton />
+      <ToggleStatus />
+    </Toggle>
+  );
+};
+
+export default App;
+```
+
+What Makes This a Compound Component?
+
+Toggle acts as the parent component, managing state.
+
+ToggleButton and ToggleStatus are subcomponents that consume the context but don't require direct props.
+
+The API is `more intuitive and declarative than passing multiple props to a single component`.
+
+Example: Tabs Component Using Compound Pattern
+
+Tabs are a common UI pattern where `different sections of content are displayed based on the active tab`.
+
+```tsx
+import React, { createContext, useState, useContext } from "react";
+
+const TabsContext = createContext(null);
+
+const Tabs = ({ children }) => {
+  const [activeTab, setActiveTab] = useState(0);
+  return (
+    <TabsContext.Provider value={{ activeTab, setActiveTab }}>
+      {children}
+    </TabsContext.Provider>
+  );
+};
+
+const TabList = ({ children }) => <div>{children}</div>;
+
+const Tab = ({ index, children }) => {
+  const { activeTab, setActiveTab } = useContext(TabsContext);
+  return (
+    <button
+      style={{ fontWeight: activeTab === index ? "bold" : "normal" }}
+      onClick={() => setActiveTab(index)}
+    >
+      {children}
+    </button>
+  );
+};
+
+const TabPanel = ({ index, children }) => {
+  const { activeTab } = useContext(TabsContext);
+  return activeTab === index ? <div>{children}</div> : null;
+};
+
+// Using Tabs with subcomponents
+const App = () => {
+  return (
+    <Tabs>
+      <TabList>
+        <Tab index={0}>Tab 1</Tab>
+        <Tab index={1}>Tab 2</Tab>
+      </TabList>
+      <TabPanel index={0}>Content of Tab 1</TabPanel>
+      <TabPanel index={1}>Content of Tab 2</TabPanel>
+    </Tabs>
+  );
+};
+
+export default App;
+```
+
+Why use the Compound Pattern for Tabs?
+
+Keeps the Tabs API clean and readable.
+
+`Avoids passing props like activeTab and setActiveTab manually to each component`.
+
+`Automatically associates tab buttons with their content` without prop-drilling.
+
+When to Use the Compound Component Pattern?
+
+- When `multiple components need to work together as a unit` (e.g., Toggles, Modals, Accordions).
+- When you want a `more declarative API instead of passing multiple props`.
+- When components `should be self-contained and not rely on external state`.
+
+> The Compound Pattern makes UI components more flexible, reusable, and modular by defining a parent-child relationship where components naturally interact without unnecessary props.
