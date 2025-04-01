@@ -269,4 +269,32 @@ In this example:
 
 - Suspense with Fallback UI: The `Suspense component handles the loading state by rendering a fallback UI (e.g., "Loading...") until the Listing component is fully loaded`. This ensures a smooth user experience.
 
+## 3.2.3 - Route Based Splitting
 
+If your application has `multiple pages, we can use dynamic imports to only load the resources that are needed for the current route`. Instead of the code for all the possible pages in the initial bundle, we can bundle-split based on routes. This approach allows us to defer loading the bundle until the user actually navigates to that page.
+
+If you're `using react-router for navigation, you can wrap the Switch component in a React.Suspense, and import the routes using React.lazy`. This automatically enables route-based code splitting.
+
+```jsx
+import React, { lazy, Suspense } from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+const App = lazy(() => import("./App"));
+const About = lazy(() => import("./About"));
+const Contact = lazy(() => import("./Contact"));
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+root.render(
+  <Router>
+    <Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
+    </Suspense>
+  </Router>
+);
+```
