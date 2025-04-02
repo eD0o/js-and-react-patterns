@@ -269,11 +269,11 @@ In this example:
 
 - Suspense with Fallback UI: The `Suspense component handles the loading state by rendering a fallback UI (e.g., "Loading...") until the Listing component is fully loaded`. This ensures a smooth user experience.
 
-## 3.2.3 - Route Based Splitting
+### 3.2.3 - Route-Based Splitting and Prefetching
 
-If your application has `multiple pages, we can use dynamic imports to only load the resources that are needed for the current route`. Instead of the code for all the possible pages in the initial bundle, we can bundle-split based on routes. This approach allows us to defer loading the bundle until the user actually navigates to that page.
+If your application has multiple pages, `you can use dynamic imports to only load the resources needed for the current route`. Instead of including all pages in the initial bundle, you can defer loading until the user navigates to a specific page. This reduces initial load time and improves loading and render efficiency.
 
-If you're `using react-router for navigation, you can wrap the Switch component in a React.Suspense, and import the routes using React.lazy`. This automatically enables route-based code splitting.
+`If you're using React Router for navigation, wrap the Routes component in React.Suspense and use React.lazy to import routes dynamically`. This enables route-based code splitting automatically.
 
 ```jsx
 import React, { lazy, Suspense } from "react";
@@ -298,3 +298,38 @@ root.render(
   </Router>
 );
 ```
+
+#### Prefetching Resources
+
+To further enhance loading efficiency, you can use the prefetch `browser hint to fetch resources that are likely to be needed soon but not immediately`. This is `useful for subsequent page navigations where a user is expected to go next`.
+
+![](https://javascriptpatterns.vercel.app/performance-patterns/browser-hints/prefetch.png)
+
+A prefetched resource is downloaded when the browser is idle and has enough bandwidth, then stored in cache. When the user navigates to the prefetched page, `the resource loads instantly from cache rather than making a new request` to the server.
+
+#### Example: Prefetching Route-Based Bundles
+
+If most users navigate to the /about route, we can prefetch its bundle to improve user experience by reducing the loading time when they visit that page.
+
+Instead of waiting for a user interaction to fetch about.bundle.js, the browser fetches it in advance when idle. Once the user navigates to /about, the bundle loads instantly from cache.
+
+#### Implementation
+
+You can prefetch a resource by adding it explicitly in the `<head>` of your HTML document:
+
+```html
+<link rel="prefetch" href="./about.bundle.js" />
+```
+
+If using Webpack, enable prefetching dynamically with the `/* webpackPrefetch: true */` magic comment:
+
+```jsx
+const About = lazy(() => import(/* webpackPrefetch: true */ "./About"));
+```
+
+#### Trade-offs
+
+- **Faster loading**: The browser `loads and renders the component from cache`, improving loading and render efficiency.
+- **Potential waste**: `If the user never navigates to the prefetched page, unnecessary resources were loaded`, possibly affecting performance and user data consumption.
+
+By combining route-based splitting with prefetching, you can optimize load times while maintaining a smooth user experience.
